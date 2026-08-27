@@ -3,9 +3,9 @@ import pandas as pd
 import plotly.express as px
 
 # 🌐 Set Page Layout Configuration
-st.set_page_config(page_title="Travel Booking System", layout="wide", page_icon="✈️")
+st.set_page_config(page_title="Master Administrator Portal", layout="wide", page_icon="⚙️")
 
-# 🔒 Initialize Session State Databases (Matching your exact original database script)
+# 🔒 Initialize Session State Databases (Matching your exact database view variables)
 if 'bookings' not in st.session_state:
     st.session_state.bookings = [
         {"BookingID": 1, "Username": "Ewelina_Nicholson", "Airline": "American Airlines", "FlightPrice": 300.00, "HotelName": "Radison", "StayDuration": 5, "TotalHotelCost": 750.00, "TotalBookingCost": 1050.00},
@@ -24,99 +24,104 @@ if 'hotels' not in st.session_state:
         {"HotelName": "Caledonina", "PricePerNight": 130.00, "AvailableRooms": 40}
     ]
 
-# Original User Credentials Dictionary
-user_credentials = {
-    "admin": "Admin2026!",
-    "Ewelina_Nicholson": "qwertyu",
-    "Philip_Nicholson": "asdfghjjk",
-    "Marta_Guzik": "zxcvbnmbn",
-    "Jarek_Kuden": "sdfjhgfrr",
-    "Dorota_Dybas": "poiuytre"
+# 🔐 Clean Credentials Register: Standard user account dictionaries are permanently deleted
+admin_credentials = {
+    "admin": "Admin2026!"
 }
 
-# 🔐 LOGIN PROFILE CONTROL FLOW
+# 🔐 LOGIN GATE CONTROL FLOW
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.username = ""
-    st.session_state.is_admin = False
 
 if not st.session_state.logged_in:
-    st.title("🔒 Secure Portal Login")
-    st.markdown("Please authenticate using your TravelBookingSystem credentials.")
+    st.title("🔒 Secure Executive Login")
+    st.markdown("Please enter your Master Administrator authentication credentials.")
     
     login_username = st.text_input("Username")
     login_password = st.text_input("Password", type="password")
     
-    if st.button("Secure Login 🔑"):
-        if login_username in user_credentials and user_credentials[login_username] == login_password:
+    if st.button("Secure Login 🔑", use_container_width=True):
+        if login_username in admin_credentials and admin_credentials[login_username] == login_password:
             st.session_state.logged_in = True
             st.session_state.username = login_username
-            st.session_state.is_admin = (login_username == "admin")
             st.rerun()
         else:
-            st.error("Invalid username or password.")
+            st.error("Access Refused: Invalid administrative credentials or unauthorized profile mapping.")
 else:
-    # 🔓 AUTHENTICATED WORKSPACE HOME
+    # 🔓 AUTHENTICATED SYSTEM PORTAL INTERFACE (Admin Exclusive Workspace)
     st.sidebar.title(f"👤 Account: {st.session_state.username}")
+    st.sidebar.markdown("⭐ **Role: System Administrator**")
+    
     if st.sidebar.button("Logout 🚪"):
         st.session_state.logged_in = False
         st.session_state.username = ""
-        st.session_state.is_admin = False
         st.rerun()
 
     df_bookings = pd.DataFrame(st.session_state.bookings)
     df_hotels = pd.DataFrame(st.session_state.hotels)
 
-    # ==========================================
-    # 👑 MODE A: ADMINISTRATOR VIEW (SEE ALL)
-    # ==========================================
-    if st.session_state.is_admin:
-        st.title("⚙️ Master Administrator Booking Management System")
-        st.markdown("---")
+    st.title("⚙️ Master Administrator Booking Management System")
+    st.markdown("Full transactional system access: View global corporate trends, manage operational data records, and run overrides.")
+    st.markdown("---")
+    
+    # Administrative Performance KPIs
+    col1, col2, col3 = st.columns(3)
+    with col1: 
+        st.metric("Total Active Platform Transactions", len(df_bookings))
+    with col2: 
+        st.metric("Gross Platform Revenue", f"£{df_bookings['TotalBookingCost'].sum():,.2f}")
+    with col3:
+        st.metric("Average Transaction Value", f"£{df_bookings['TotalBookingCost'].mean():,.2f}")
         
-        # Admin Metrics cards
-        col1, col2 = st.columns(2)
-        with col1: st.metric("Total Global Bookings", len(df_bookings))
-        with col2: st.metric("Gross Revenue", f"£{df_bookings['TotalBookingCost'].sum():,.2f}")
+    st.markdown("---")
+    
+    # Booking Entry Override Management Form Panel
+    st.subheader("➕ Administrative Override: Book a New Destination Package")
+    form_col1, form_col2 = st.columns(2)
+    with form_col1:
+        client_name = st.text_input("Enter Target Customer Name", "Guest_User")
+        c_airline = st.selectbox("Assign Flight Carrier Line", ["American Airlines", "United Airlines", "Delta Airlines", "British Airways"])
+    with form_col2:
+        c_hotel = st.selectbox("Assign Destination Hotel Accommodation", [h["HotelName"] for h in st.session_state.hotels])
+        stay_duration = st.number_input("Assign Stay Length (Nights)", min_value=1, max_value=30, value=5)
         
-        st.markdown("---")
-        st.subheader("📋 Core Data Registry: Global Master Transaction Log")
-        st.dataframe(df_bookings, use_container_width=True)
-
-    # ==========================================
-    # 👤 MODE B: STANDARD CUSTOMER VIEW (SEE ALL BOOKINGS LAYOUT)
-    # ==========================================
-    else:
-        st.title(f"✈️ Welcome to Your Travel Portal, {st.session_state.username}")
-        st.markdown("---")
+    if st.button("Execute Administrative Booking 🚀", use_container_width=True):
+        hotel_base = next(h for h in st.session_state.hotels if h["HotelName"] == c_hotel)
+        f_price = 300.00 if "American" in c_airline else 250.00
+        h_total = hotel_base["PricePerNight"] * stay_duration
+        t_cost = f_price + h_total
         
-        # Form Layout fields stacked cleanly
-        st.subheader("✈️ Reserve a New Holiday Package")
-        c_airline = st.selectbox("Select Flight Carrier Line", ["American Airlines", "United Airlines", "Delta Airlines", "British Airways"])
-        c_hotel = st.selectbox("Select Destination Hotel", [h["HotelName"] for h in st.session_state.hotels])
-        stay_duration = st.number_input("Select Stay Duration (Nights)", min_value=1, max_value=30, value=5)
-        
-        if st.button("Confirm Package Booking 💳", use_container_width=True):
-            hotel_base = next(h for h in st.session_state.hotels if h["HotelName"] == c_hotel)
-            f_price = 300.00 if "American" in c_airline else 250.00
-            h_total = hotel_base["PricePerNight"] * stay_duration
-            t_cost = f_price + h_total
+        # Simulating SQL inventory adjustment steps
+        for h in st.session_state.hotels:
+            if h["HotelName"] == c_hotel: h["AvailableRooms"] -= 1
             
-            st.session_state.bookings.append({
-                "BookingID": len(st.session_state.bookings) + 1,
-                "Username": st.session_state.username,
-                "Airline": c_airline,
-                "FlightPrice": f_price,
-                "HotelName": c_hotel,
-                "StayDuration": stay_duration,
-                "TotalHotelCost": h_total,
-                "TotalBookingCost": t_cost
-            })
-            st.success("Booking confirmed successfully!")
-            st.rerun()
-            
-        st.markdown("---")
+        st.session_state.bookings.append({
+            "BookingID": len(st.session_state.bookings) + 1,
+            "Username": client_name,
+            "Airline": c_airline,
+            "FlightPrice": f_price,
+            "HotelName": c_hotel,
+            "StayDuration": stay_duration,
+            "TotalHotelCost": h_total,
+            "TotalBookingCost": t_cost
+        })
+        st.success(f"Administrative override successful. Transacted booking logged for user '{client_name}'.")
+        st.rerun()
         
-        # Original Table View: Shows all bookings as requested
-        st.subheader("📥 Active Transactional Data Records (Live Data Layer)")
-        st.dataframe(df_bookings, use_container_width=True)
+    st.markdown("---")
+    
+    # Visual Matrix Trends Grid Summary Section
+    left_ch, right_ch = st.columns(2)
+    with left_ch:
+        fig_rev = px.bar(df_bookings, x='Airline', y='TotalBookingCost', color='Airline', title="Platform Revenue Split by Flight Carrier")
+        st.plotly_chart(fig_rev, use_container_width=True)
+    with right_ch:
+        fig_inv = px.bar(df_hotels, x='HotelName', y='AvailableRooms', color='HotelName', title="Live Available Room Inventory Status")
+        st.plotly_chart(fig_inv, use_container_width=True)
+        
+    st.markdown("---")
+    
+    # Core Global Master Data Log Grid
+    st.subheader("📋 Core Data Registry: Global Master Transaction Log")
+    st.dataframe(df_bookings, use_container_width=True)
