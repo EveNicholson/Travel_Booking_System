@@ -104,7 +104,7 @@ else:
             selected_hotel = st.selectbox("Assign Hotel Property", [h["HotelName"] for h in st.session_state.hotels])
             stay_days = st.number_input("Assign Length of Stay (Nights)", min_value=1, max_value=30, value=5)
         with form_col3:
-            st.markdown("<br>", unsafe_allow_html=True) # Corrected html spacer parameters
+            st.markdown("<br>", unsafe_allow_html=True) 
             if st.button("Execute Administrative Booking 🚀", use_container_width=True):
                 hotel_base = next(h for h in st.session_state.hotels if h["HotelName"] == selected_hotel)
                 flight_cost = 300.00 if "American" in selected_airline else 250.00
@@ -185,5 +185,5 @@ else:
                 })
                 st.success("Your reservation packet has been successfully created!")
                 st.rerun()
+                
 
-EOL
