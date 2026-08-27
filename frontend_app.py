@@ -4,16 +4,16 @@ import plotly.express as px
 from datetime import datetime, date
 
 # 🌐 Set Page Layout Configuration
-st.set_page_config(page_title="Admin Travel Management Portal", layout="wide", page_icon="🔒")
+st.set_page_config(page_title="Secure Travel Booking Management Portal", layout="wide", page_icon="🔒")
 
 # 🔒 Initialize Session State Databases (Matching your exact SQL script values)
 if 'bookings' not in st.session_state:
     st.session_state.bookings = [
-        {"BookingID": 1, "Username": "Ewelina_Nicholson", "Airline": "American Airlines", "HotelName": "Radison", "StayDuration": 5, "TotalBookingCost": 1300.00, "Status": "Confirmed"},
-        {"BookingID": 2, "Username": "Philip_Nicholson", "Airline": "United Airlines", "HotelName": "Denver", "StayDuration": 4, "TotalBookingCost": 1050.00, "Status": "Confirmed"},
-        {"BookingID": 3, "Username": "Marta_Guzik", "Airline": "Delta Airlines", "HotelName": "Blue Bay", "StayDuration": 3, "TotalBookingCost": 525.00, "Status": "Confirmed"},
-        {"BookingID": 4, "Username": "Jarek_Kuden", "Airline": "American Airlines", "HotelName": "Stanton", "StayDuration": 5, "TotalBookingCost": 1820.00, "Status": "Confirmed"},
-        {"BookingID": 5, "Username": "Dorota_Dybas", "Airline": "United Airlines", "HotelName": "Caledonina", "StayDuration": 8, "TotalBookingCost": 1870.00, "Status": "Confirmed"}
+        {"BookingID": 1, "Username": "Ewelina_Nicholson", "Airline": "American Airlines", "HotelName": "Radison", "StayDuration": 5, "CarType": "Compact", "CarDuration": 5, "TotalBookingCost": 1300.00, "Status": "Confirmed"},
+        {"BookingID": 2, "Username": "Philip_Nicholson", "Airline": "United Airlines", "HotelName": "Denver", "StayDuration": 4, "CarType": "SUV", "CarDuration": 4, "TotalBookingCost": 1050.00, "Status": "Confirmed"},
+        {"BookingID": 3, "Username": "Marta_Guzik", "Airline": "Delta Airlines", "HotelName": "Blue Bay", "StayDuration": 3, "CarType": "Economy", "CarDuration": 3, "TotalBookingCost": 525.00, "Status": "Confirmed"},
+        {"BookingID": 4, "Username": "Jarek_Kuden", "Airline": "American Airlines", "HotelName": "Stanton", "StayDuration": 5, "CarType": "Luxury", "CarDuration": 5, "TotalBookingCost": 1820.00, "Status": "Confirmed"},
+        {"BookingID": 5, "Username": "Dorota_Dybas", "Airline": "United Airlines", "HotelName": "Caledonina", "StayDuration": 8, "CarType": "Minivan", "CarDuration": 8, "TotalBookingCost": 1870.00, "Status": "Confirmed"}
     ]
 
 if 'hotels' not in st.session_state:
@@ -23,6 +23,16 @@ if 'hotels' not in st.session_state:
         {"HotelName": "Blue Bay", "PricePerNight": 75.00, "AvailableRooms": 20, "Rating": 3.2},
         {"HotelName": "Stanton", "PricePerNight": 180.00, "AvailableRooms": 15, "Rating": 4.7},
         {"HotelName": "Caledonina", "PricePerNight": 130.00, "AvailableRooms": 40, "Rating": 4.3}
+    ]
+
+if 'cars' not in st.session_state:
+    st.session_state.cars = [
+        {"CarType": "Compact", "PricePerDay": 50.00, "AvailableCars": 20},
+        {"CarType": "SUV", "PricePerDay": 80.00, "AvailableCars": 15},
+        {"CarType": "Economy", "PricePerDay": 40.00, "AvailableCars": 25},
+        {"CarType": "Luxury", "PricePerDay": 120.00, "AvailableCars": 10},
+        {"CarType": "Minivan", "PricePerDay": 70.00, "AvailableCars": 12},
+        {"CarType": "None", "PricePerDay": 0.00, "AvailableCars": 999}
     ]
 
 # User Authentication Dictionary (Mapping your SQL credentials)
@@ -74,6 +84,7 @@ else:
     # 📈 COMPOSITE DATA SETUPS
     df_bookings = pd.DataFrame(st.session_state.bookings)
     df_hotels = pd.DataFrame(st.session_state.hotels)
+    df_cars = pd.DataFrame(st.session_state.cars)
 
     # ==========================================
     # 👑 MODE A: ADMINISTRATOR EXECUTIVE VIEW
@@ -100,46 +111,53 @@ else:
         with form_col1:
             target_user = st.selectbox("Select Target Client Account", [u for u in user_credentials.keys() if u != 'admin'])
             selected_airline = st.selectbox("Assign Flight Carrier", ["American Airlines", "United Airlines", "Delta Airlines", "British Airways"])
-        with form_col2:
             selected_hotel = st.selectbox("Assign Hotel Property", [h["HotelName"] for h in st.session_state.hotels])
-            admin_in_date = st.date_input("Check-In Date", date.today(), key="admin_in")
-            admin_out_date = st.date_input("Check-Out Date", date.today(), key="admin_out")
+        with form_col2:
+            selected_car = st.selectbox("Assign Vehicle Rental Type", [c["CarType"] for c in st.session_state.cars])
+            admin_in_date = st.date_input("Hotel Check-In Date", date.today(), key="admin_in")
+            admin_out_date = st.date_input("Hotel Check-Out Date", date.today(), key="admin_out")
         with form_col3:
+            admin_car_start = st.date_input("Car Rental Start Date", date.today(), key="admin_car_in")
+            admin_car_end = st.date_input("Car Rental End Date", date.today(), key="admin_car_out")
+            
             stay_days = (admin_out_date - admin_in_date).days
-            st.markdown(f"<br><b>Calculated Stay Duration:</b> {stay_days} Nights", unsafe_allow_html=True)
+            car_days = (admin_car_end - admin_car_start).days if selected_car != "None" else 0
+            
+            st.markdown(f"<b>Computed Hotel Stay:</b> {stay_days} Nights", unsafe_allow_html=True)
+            st.markdown(f"<b>Computed Car Rental:</b> {car_days} Days", unsafe_allow_html=True)
+            
             if st.button("Execute Administrative Booking 🚀", use_container_width=True):
                 if stay_days <= 0:
-                    st.error("Check-Out Date must be after Check-In Date!")
+                    st.error("Hotel Check-Out must be after Check-In!")
+                elif selected_car != "None" and car_days <= 0:
+                    st.error("Car Rental End Date must be after Start Date!")
                 else:
                     hotel_base = next(h for h in st.session_state.hotels if h["HotelName"] == selected_hotel)
-                    flight_cost = 300.00 if "American" in selected_airline else 250.00
-                    total_cost_calc = flight_cost + (hotel_base["PricePerNight"] * stay_days)
+                    car_base = next(c for c in st.session_state.cars if c["CarType"] == selected_car)
                     
-                    # Update Inventory Count
+                    flight_cost = 300.00 if "American" in selected_airline else 250.00
+                    hotel_total = hotel_base["PricePerNight"] * stay_days
+                    car_total = car_base["PricePerDay"] * car_days
+                    total_cost_calc = flight_cost + hotel_total + car_total
+                    
+                    # Update Inventory Counts
                     for h in st.session_state.hotels:
-                        if h["HotelName"] == selected_hotel:
-                            h["AvailableRooms"] -= 1
+                        if h["HotelName"] == selected_hotel: h["AvailableRooms"] -= 1
+                    if selected_car != "None":
+                        for c in st.session_state.cars:
+                            if c["CarType"] == selected_car: c["AvailableCars"] -= 1
                             
                     # Append Master Row Record
                     st.session_state.bookings.append({
                         "BookingID": len(st.session_state.bookings) + 1, "Username": target_user,
                         "Airline": selected_airline, "HotelName": selected_hotel, "StayDuration": stay_days,
-                        "TotalBookingCost": total_cost_calc, "Status": "Confirmed"
+                        "CarType": selected_car, "CarDuration": car_days, "TotalBookingCost": total_cost_calc, "Status": "Confirmed"
                     })
-                    st.success(f"Administrative overrides completed. Booking assigned to user '{target_user}'.")
+                    st.success(f"Administrative override complete. Assigned to user '{target_user}'.")
                     st.rerun()
 
         st.markdown("---")
         
-        # Master Charts Panel
-        left_ch, right_ch = st.columns(2)
-        with left_ch:
-            fig_rev = px.bar(df_bookings, x='Airline', y='TotalBookingCost', color='Airline', title="Global Revenue Metrics by Flight Line")
-            st.plotly_chart(fig_rev, use_container_width=True)
-        with right_ch:
-            fig_inv = px.bar(df_hotels, x='HotelName', y='AvailableRooms', color='HotelName', title="Asset Inventory Status Level")
-            st.plotly_chart(fig_inv, use_container_width=True)
-
         # Master Global View Data Grid (Admin Exclusive)
         st.subheader("📋 Core Data Registry: Global Master Transaction Log")
         st.dataframe(df_bookings, use_container_width=True)
@@ -152,7 +170,7 @@ else:
         st.markdown("Configure packages, check scheduled flight itineraries, and audit your personal reservation records.")
         st.markdown("---")
         
-        # Filter data frames dynamically to strictly isolate current user rows
+        # SECURE ROW ISOLATION FILTER: Dynamic slice matching logged in profile tag
         user_isolated_df = df_bookings[df_bookings['Username'] == st.session_state.username]
         
         # User Specific Visual Summaries
@@ -160,27 +178,4 @@ else:
         with col1:
             st.metric("Your Total Active Trips", f"{len(user_isolated_df)}")
         with col2:
-            st.metric("Your Account Total Lifetime Spend", f"£{user_isolated_df['TotalBookingCost'].sum():,.2f}")
-            
-        st.markdown("---")
-        
-        # Customer-Level Dynamic Form Inputs Panel
-        st.subheader("✈️ Reserve a New Holiday Package")
-        c_col1, c_col2 = st.columns(2)
-        with c_col1:
-            c_airline = st.selectbox("Select Flight Carrier Line", ["American Airlines", "United Airlines", "Delta Airlines", "British Airways"])
-            c_hotel = st.selectbox("Select Destination Hotel", [h["HotelName"] for h in st.session_state.hotels])
-        with c_col2:
-            user_in_date = st.date_input("Select Check-In Date", date.today(), key="user_in")
-            user_out_date = st.date_input("Select Check-Out Date", date.today(), key="user_out")
-            c_stay = (user_out_date - user_in_date).days
-            st.markdown(f"<b>Computed Duration:</b> {c_stay} Nights", unsafe_allow_html=True)
-            
-            if st.button("Confirm Package Booking 💳", use_container_width=True):
-                if c_stay <= 0:
-                    st.error("Check-Out Date must be after Check-In Date!")
-                else:
-                    hotel_base = next(h for h in st.session_state.hotels if h["HotelName"] == c_hotel)
-                    f_cost = 300.00 if "American" in c_airline else 250.00
-                    total_c = f_cost + (hotel_base["PricePerNight"] * c_stay)
 
