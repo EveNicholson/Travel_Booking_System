@@ -79,6 +79,9 @@ else:
     df_hotels = pd.DataFrame(st.session_state.hotels)
     df_cars = pd.DataFrame(st.session_state.cars)
 
+    # ==========================================
+    # 👑 MODE A: ADMINISTRATOR EXECUTIVE VIEW
+    # ==========================================
     if st.session_state.is_admin:
         st.title("⚙️ Master Administrator Booking Management System")
         st.markdown("Full transactional system access: View global corporate trends, run inventory auditing, and manual user override registrations.")
@@ -146,6 +149,9 @@ else:
         st.subheader("📋 Core Data Registry: Global Master Transaction Log")
         st.dataframe(df_bookings, use_container_width=True)
 
+    # ==========================================
+    # 👤 MODE B: STANDARD ISOLATED CUSTOMER VIEW
+    # ==========================================
     else:
         st.title(f"✈️ Welcome to Your Travel Portal, {st.session_state.username}")
         st.markdown("Configure packages, check scheduled flight itineraries, and audit your personal reservation records.")
@@ -162,14 +168,9 @@ else:
         st.markdown("---")
         st.subheader("✈️ Reserve a New Holiday Package")
         
-        # 🔓 THE ULTIMATE VERTICAL GRID RESTRUCTURE (Prevents laptop display clipping bugs completely)
-        c_left, c_right = st.columns(2)
-        
-        with c_left:
-            st.markdown("### 🛫 1. Flight & Hotel Accommodation Details")
-            c_airline = st.selectbox("Select Flight Carrier Line", ["American Airlines", "United Airlines", "Delta Airlines", "British Airways"])
-            c_hotel = st.selectbox("Select Destination Hotel", [h["HotelName"] for h in st.session_state.hotels])
-            user_in_date = st.date_input("Select Hotel Check-In Date", date.today(), key="user_in")
-            user_out_date = st.date_input("Select Hotel Check-Out Date", date.today(), key="user_out")
-            stay_days = (user_out_date - user_in_date).days
+        # 🛠️ COMPLETELY REMOVED THE BLOCKING SIDE-BY-SIDE COLUMNS FOR GUESTS
+        st.markdown("#### 🛫 1. Flight & Hotel Accommodations")
+        c_airline = st.selectbox("Select Flight Carrier Line", ["American Airlines", "United Airlines", "Delta Airlines", "British Airways"])
+        c_hotel = st.selectbox("Select Destination Hotel", [h["HotelName"] for h in st.session_state.hotels])
+        user_in_date = st.date_input("Select Hotel Check-In Date", date.today(), key="user_in")
 
