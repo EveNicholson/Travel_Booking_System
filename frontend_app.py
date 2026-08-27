@@ -5,7 +5,7 @@ import plotly.express as px
 # 🌐 Set Page Layout Configuration
 st.set_page_config(page_title="Master Administrator Portal", layout="wide", page_icon="⚙️")
 
-# 🔒 Initialize Session State Databases (Matching your exact database view variables)
+# 🔒 Initialize Session State Databases (Your Complete Database Records Matching SQL Layout)
 if 'bookings' not in st.session_state:
     st.session_state.bookings = [
         {"BookingID": 1, "Username": "Ewelina_Nicholson", "Airline": "American Airlines", "FlightPrice": 300.00, "HotelName": "Radison", "StayDuration": 5, "TotalHotelCost": 750.00, "TotalBookingCost": 1050.00},
@@ -24,7 +24,16 @@ if 'hotels' not in st.session_state:
         {"HotelName": "Caledonina", "PricePerNight": 130.00, "AvailableRooms": 40}
     ]
 
-# 🔐 Clean Credentials Register: Standard user account dictionaries are permanently deleted
+# 📝 Complete Target Database User Directory (Sourced from your SQL script entries)
+database_users = [
+    "Ewelina_Nicholson",
+    "Philip_Nicholson",
+    "Marta_Guzik",
+    "Jarek_Kuden",
+    "Dorota_Dybas"
+]
+
+# 🔐 Clean Credentials Register (Restricting access exclusively to admin)
 admin_credentials = {
     "admin": "Admin2026!"
 }
@@ -80,7 +89,8 @@ else:
     st.subheader("➕ Administrative Override: Book a New Destination Package")
     form_col1, form_col2 = st.columns(2)
     with form_col1:
-        client_name = st.text_input("Enter Target Customer Name", "Guest_User")
+        # 👥 Dropdown containing your real database users list
+        client_name = st.selectbox("Select Target Database Account", database_users)
         c_airline = st.selectbox("Assign Flight Carrier Line", ["American Airlines", "United Airlines", "Delta Airlines", "British Airways"])
     with form_col2:
         c_hotel = st.selectbox("Assign Destination Hotel Accommodation", [h["HotelName"] for h in st.session_state.hotels])
@@ -92,7 +102,7 @@ else:
         h_total = hotel_base["PricePerNight"] * stay_duration
         t_cost = f_price + h_total
         
-        # Simulating SQL inventory adjustment steps
+        # Simulating SQL trigger room reductions
         for h in st.session_state.hotels:
             if h["HotelName"] == c_hotel: h["AvailableRooms"] -= 1
             
@@ -122,6 +132,6 @@ else:
         
     st.markdown("---")
     
-    # Core Global Master Data Log Grid
+    # Core Global Master Data Log Grid (Displays everything sequentially)
     st.subheader("📋 Core Data Registry: Global Master Transaction Log")
     st.dataframe(df_bookings, use_container_width=True)
