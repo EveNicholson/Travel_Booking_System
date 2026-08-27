@@ -1,63 +1,117 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from datetime import datetime
 
 # 🌐 Set Page Layout Configuration
-st.set_page_config(page_title="My Relational Travel Booking Dashboard", layout="wide", page_icon="✈️")
+st.set_page_config(page_title="Travel Booking Engine", layout="wide", page_icon="🏨")
 
-st.title("📊 My Travel Booking System Management Portal")
-st.markdown("Live analytics and metrics visualization layer pulling data records directly from your **MySQL Relational Schema**.")
+# Initialize persistent tracking data in the cloud session state
+if 'bookings' not in st.session_state:
+    st.session_state.bookings = [
+        {"BookingID": 1, "Username": "Ewelina_Nicholson", "Airline": "American Airlines", "FlightPrice": 300.00, "HotelName": "Radison", "StayDuration": 5, "TotalHotelCost": 750.00, "CarType": "Compact", "TotalCarCost": 250.00, "TotalBookingCost": 1300.00},
+        {"BookingID": 2, "Username": "Philip_Nicholson", "Airline": "United Airlines", "FlightPrice": 250.00, "HotelName": "Denver", "StayDuration": 4, "TotalHotelCost": 480.00, "CarType": "SUV", "TotalCarCost": 320.00, "TotalBookingCost": 1050.00},
+        {"BookingID": 3, "Username": "Marta_Guzik", "Airline": "Delta Airlines", "FlightPrice": 180.00, "HotelName": "Blue Bay", "StayDuration": 3, "TotalHotelCost": 225.00, "CarType": "Economy", "TotalCarCost": 120.00, "TotalBookingCost": 525.00}
+    ]
+
+if 'hotels' not in st.session_state:
+    st.session_state.hotels = [
+        {"HotelName": "Radison", "PricePerNight": 150.00, "AvailableRooms": 50, "Rating": 4.5},
+        {"HotelName": "Denver", "PricePerNight": 120.00, "AvailableRooms": 30, "Rating": 4.0},
+        {"HotelName": "Blue Bay", "PricePerNight": 75.00, "AvailableRooms": 20, "Rating": 3.2},
+        {"HotelName": "Stanton", "PricePerNight": 180.00, "AvailableRooms": 15, "Rating": 4.7},
+        {"HotelName": "Caledonina", "PricePerNight": 130.00, "AvailableRooms": 40, "Rating": 4.3}
+    ]
+
+st.title("🏨 Interactive Travel Search & Booking Portal")
+st.markdown("Search destinations, configure travel packages, and book instantly. Simulates real-time backend schema operations.")
 st.markdown("---")
 
-# 📥 Production Data Layer (Your Exact SQL Script View Rows)
-production_records = [
-    {"UserID": 1, "Username": "Ewelina_Nicholson", "Airline": "American Airlines", "FlightPrice": 300.00, "HotelName": "Radison", "StayDuration": 5, "TotalHotelCost": 750.00, "CarType": "Compact", "TotalCarCost": 250.00, "TotalBookingCost": 1300.00},
-    {"UserID": 2, "Username": "Philip_Nicholson", "Airline": "United Airlines", "FlightPrice": 250.00, "HotelName": "Denver", "StayDuration": 4, "TotalHotelCost": 480.00, "CarType": "SUV", "TotalCarCost": 320.00, "TotalBookingCost": 1050.00},
-    {"UserID": 3, "Username": "Marta_Guzik", "Airline": "Delta Airlines", "FlightPrice": 180.00, "HotelName": "Blue Bay", "StayDuration": 3, "TotalHotelCost": 225.00, "CarType": "Economy", "TotalCarCost": 120.00, "TotalBookingCost": 525.00},
-    {"UserID": 4, "Username": "Jarek_Kuden", "Airline": "American Airlines", "FlightPrice": 320.00, "HotelName": "Stanton", "StayDuration": 5, "TotalHotelCost": 900.00, "CarType": "Luxury", "TotalCarCost": 600.00, "TotalBookingCost": 1820.00},
-    {"UserID": 5, "Username": "Dorota_Dybas", "Airline": "United Airlines", "FlightPrice": 270.00, "HotelName": "Caledonina", "StayDuration": 8, "TotalHotelCost": 1040.00, "CarType": "Minivan", "TotalCarCost": 560.00, "TotalBookingCost": 1870.00},
-    {"UserID": 6, "Username": "Krzysiek_Dybas", "Airline": "Delta Airlines", "FlightPrice": 220.00, "HotelName": "Lomond", "StayDuration": 8, "TotalHotelCost": 1600.00, "CarType": "Convertible", "TotalCarCost": 720.00, "TotalBookingCost": 2540.00},
-    {"UserID": 7, "Username": "John_Smith", "Airline": "American Airlines", "FlightPrice": 290.00, "HotelName": "The Crusoe", "StayDuration": 5, "TotalHotelCost": 550.00, "CarType": "Truck", "TotalCarCost": 375.00, "TotalBookingCost": 1215.00},
-    {"UserID": 8, "Username": "Olivia_Perez", "Airline": "United Airlines", "FlightPrice": 260.00, "HotelName": "Astoria", "StayDuration": 4, "TotalHotelCost": 800.00, "CarType": "Hybrid", "TotalCarCost": 240.00, "TotalBookingCost": 1300.00},
-    {"UserID": 9, "Username": "Noah_Hernandez", "Airline": "Delta Airlines", "FlightPrice": 230.00, "HotelName": "Fantasia", "StayDuration": 5, "TotalHotelCost": 950.00, "CarType": "Sports", "TotalCarCost": 500.00, "TotalBookingCost": 1680.00},
-    {"UserID": 10, "Username": "Sophia_Davidson", "Airline": "American Airlines", "FlightPrice": 310.00, "HotelName": "Old Manor", "StayDuration": 5, "TotalHotelCost": 700.00, "CarType": "Van", "TotalCarCost": 325.00, "TotalBookingCost": 1335.00}
-]
+# 🧳 SIDEBAR: User Booking Interaction Panel
+st.sidebar.header("✈️ Book a New Destination")
+user_input = st.sidebar.text_input("Enter Your Username", "Guest_User")
 
-df = pd.DataFrame(production_records)
+# Dropdowns mapped directly to your SQL metadata models
+selected_hotel_name = st.sidebar.selectbox("Choose a Hotel Accommodation", [h["HotelName"] for h in st.session_state.hotels])
+selected_airline = st.sidebar.selectbox("Choose a Flight Carrier", ["American Airlines", "United Airlines", "Delta Airlines", "British Airways"])
+selected_car = st.sidebar.selectbox("Choose a Vehicle Rental", ["Compact", "SUV", "Economy", "Luxury", "None"])
 
-# 📈 1. Key Performance Indicators (KPI Row)
-col1, col2, col3, col4 = st.columns(4)
+# Date inputs mirroring your datetime fields
+check_in = st.sidebar.date_input("Hotel Check-In Date", datetime(2026, 10, 10))
+check_out = st.sidebar.date_input("Hotel Check-Out Date", datetime(2026, 10, 15))
+
+# Calculate variables internally
+stay_days = (check_out - check_in).days
+
+# Execute transactional cost processing simulation
+hotel_base = next(h for h in st.session_state.hotels if h["HotelName"] == selected_hotel_name)
+flight_cost = 300.00 if "American" in selected_airline else (250.00 if "United" in selected_airline else 200.00)
+car_cost_per_day = {"Compact": 50.0, "SUV": 80.0, "Economy": 40.0, "Luxury": 120.0, "None": 0.0}[selected_car]
+
+total_hotel_calc = hotel_base["PricePerNight"] * stay_days
+total_car_calc = car_cost_per_day * stay_days
+grand_total_calc = flight_cost + total_hotel_calc + total_car_calc
+
+st.sidebar.markdown(f"""
+**Booking Financial Breakdown:**
+* Flight Base Price: £{flight_cost:.2f}
+* Hotel Total Stay ({stay_days} nights): £{total_hotel_calc:.2f}
+* Car Rental Total Cost: £{total_car_calc:.2f}
+### **Grand Total Cost: £{grand_total_calc:.2f}**
+""")
+
+# 🔘 The Booking Transaction Execution Event
+if st.sidebar.button("Confirm and Book Transaction 🚀"):
+    if stay_days <= 0:
+        st.sidebar.error("Error: Check-Out Date must be after Check-In Date!")
+    elif hotel_base["AvailableRooms"] <= 0:
+        st.sidebar.error(f"Error: No available rooms left at {selected_hotel_name}!")
+    else:
+        # 1. Update Hotel Inventory (Simulating your AFTER INSERT SQL Trigger)
+        for h in st.session_state.hotels:
+            if h["HotelName"] == selected_hotel_name:
+                h["AvailableRooms"] -= 1
+                
+        # 2. Append the record to the session log grid
+        new_id = len(st.session_state.bookings) + 1
+        st.session_state.bookings.append({
+            "BookingID": new_id, "Username": user_input, "Airline": selected_airline, "FlightPrice": flight_cost,
+            "HotelName": selected_hotel_name, "StayDuration": stay_days, "TotalHotelCost": total_hotel_calc,
+            "CarType": selected_car, "TotalCarCost": total_car_calc, "TotalBookingCost": grand_total_calc
+        })
+        st.sidebar.success(f"Success! Booking #{new_id} confirmed. Room count updated via trigger.")
+
+# 📊 MAIN PANEL: Analytics Render Layers
+df_bookings = pd.DataFrame(st.session_state.bookings)
+df_hotels = pd.DataFrame(st.session_state.hotels)
+
+# KPI Metrics Dashboard Section
+col1, col2, col3 = st.columns(3)
 with col1:
-    st.metric("Total Active Bookings", f"{len(df)}")
+    st.metric("Total Platform Transactions", f"{len(df_bookings)}")
 with col2:
-    total_revenue = df['TotalBookingCost'].sum()
-    st.metric("Gross Platform Revenue", f"£{total_revenue:,.2f}")
+    st.metric("Gross Revenue Performance", f"£{df_bookings['TotalBookingCost'].sum():,.2f}")
 with col3:
-    avg_stay = df['StayDuration'].mean()
-    st.metric("Average Stay Duration", f"{avg_stay:.1f} Nights")
-with col4:
-    avg_cost = df['TotalBookingCost'].mean()
-    st.metric("Average Basket Value", f"£{avg_cost:,.2f}")
-    
-st.markdown("---")
-
-# 📊 2. Interactive Analytical Charts Row
-left_chart, right_chart = st.columns(2)
-
-with left_chart:
-    st.subheader("✈️ Airline Performance Summary")
-    fig_airline = px.bar(df, x='Airline', y='TotalBookingCost', color='Airline',
-                         title="Revenue Distribution by Carrier Airline", barmode='group')
-    st.plotly_chart(fig_airline, use_container_width=True)
-
-with right_chart:
-    st.subheader("🏨 Hotel Asset Performance")
-    fig_hotel = px.pie(df, names='HotelName', values='TotalHotelCost', 
-                       title="Total Spend Distribution Across Hotel Chains", hole=0.4)
-    st.plotly_chart(fig_hotel, use_container_width=True)
+    st.metric("Average User Basket Spend", f"£{df_bookings['TotalBookingCost'].mean():,.2f}")
 
 st.markdown("---")
 
-# 📋 3. Live Relational Data Records View
-st.subheader("📥 Active Transactional Data Records (Live Data Layer)")
-st.dataframe(df, use_container_width=True)
+# Visual Graphs Row
+left, right = st.columns(2)
+with left:
+    fig_air = px.bar(df_bookings, x='Airline', y='TotalBookingCost', color='Airline', title="Platform Revenue Split by Carrier")
+    st.plotly_chart(fig_air, use_container_width=True)
+with right:
+    fig_inv = px.bar(df_hotels, x='HotelName', y='AvailableRooms', color='HotelName', title="Live Available Room Inventory Count")
+    st.plotly_chart(fig_inv, use_container_width=True)
+
+st.markdown("---")
+
+# Data Presentation Tables Grid
+left_tbl, right_tbl = st.columns([3, 2])
+with left_tbl:
+    st.subheader("📥 Active Client Transactions Log Layer")
+    st.dataframe(df_bookings, use_container_width=True)
+with right_tbl:
+    st.subheader("🏨 Live Accommodation Asset Register")
+    st.dataframe(df_hotels, use_container_width=True)
