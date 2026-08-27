@@ -24,16 +24,17 @@ if 'hotels' not in st.session_state:
         {"HotelName": "Caledonina", "PricePerNight": 130.00, "AvailableRooms": 40}
     ]
 
-# 📝 Complete Target Database User Directory (Sourced from your SQL script entries)
-database_users = [
-    "Ewelina_Nicholson",
-    "Philip_Nicholson",
-    "Marta_Guzik",
-    "Jarek_Kuden",
-    "Dorota_Dybas"
-]
+# 📝 Dynamic Target Database User Directory (Accepts live frontend user creations)
+if 'database_users' not in st.session_state:
+    st.session_state.database_users = [
+        "Ewelina_Nicholson",
+        "Philip_Nicholson",
+        "Marta_Guzik",
+        "Jarek_Kuden",
+        "Dorota_Dybas"
+    ]
 
-# 🔐 Clean Credentials Register (Restricting access exclusively to admin)
+# 🔐 Clean Credentials Register (Dashboard restricted exclusively to admin profile)
 admin_credentials = {
     "admin": "Admin2026!"
 }
@@ -85,12 +86,32 @@ else:
         
     st.markdown("---")
     
+    # 🆕 NEW LIVE PANEL: Register new users dynamically directly on the website layout
+    st.subheader("🆕 Register a New Customer Profile")
+    reg_left, reg_right = st.columns(2)
+    with reg_left:
+        new_customer_name = st.text_input("Enter New Customer Name (Use underscores for spaces, e.g., John_Doe)", placeholder="Firstname_Lastname")
+    with reg_right:
+        st.markdown("<br>", unsafe_allow_html=True) 
+        if st.button("Register Profile 👤", use_container_width=True):
+            clean_name = new_customer_name.strip()
+            if not clean_name:
+                st.error("Error: Customer name cannot be blank!")
+            elif clean_name in st.session_state.database_users:
+                st.warning(f"Profile mapping warning: '{clean_name}' already exists inside your database!")
+            else:
+                st.session_state.database_users.append(clean_name)
+                st.success(f"Success! '{clean_name}' has been added to your database memory registers.")
+                st.rerun()
+                
+    st.markdown("---")
+    
     # Booking Entry Override Management Form Panel
     st.subheader("➕ Administrative Override: Book a New Destination Package")
     form_col1, form_col2 = st.columns(2)
     with form_col1:
-        # 👥 Dropdown containing your real database users list
-        client_name = st.selectbox("Select Target Database Account", database_users)
+        # Dynamic customer selector mapping
+        client_name = st.selectbox("Select Target Database Account", st.session_state.database_users)
         c_airline = st.selectbox("Assign Flight Carrier Line", ["American Airlines", "United Airlines", "Delta Airlines", "British Airways"])
     with form_col2:
         c_hotel = st.selectbox("Assign Destination Hotel Accommodation", [h["HotelName"] for h in st.session_state.hotels])
@@ -102,7 +123,7 @@ else:
         h_total = hotel_base["PricePerNight"] * stay_duration
         t_cost = f_price + h_total
         
-        # Simulating SQL trigger room reductions
+        # Simulating SQL table updates
         for h in st.session_state.hotels:
             if h["HotelName"] == c_hotel: h["AvailableRooms"] -= 1
             
@@ -132,6 +153,6 @@ else:
         
     st.markdown("---")
     
-    # Core Global Master Data Log Grid (Displays everything sequentially)
+    # Core Global Master Data Log Grid
     st.subheader("📋 Core Data Registry: Global Master Transaction Log")
     st.dataframe(df_bookings, use_container_width=True)
