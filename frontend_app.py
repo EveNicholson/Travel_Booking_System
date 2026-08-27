@@ -79,7 +79,7 @@ else:
             u_phone = st.text_input("Phone Number")
             u_pay = st.text_input("Payment Information", placeholder="e.g. 0x9L912J1...")
             
-        submit_user = st.form_submit_with_button("Commit User to Database Matrix 👤", use_container_width=True)
+        submit_user = st.form_submit_button("Commit User to Database Matrix 👤", use_container_width=True)
         if submit_user:
             if not u_name or not u_email or not u_first:
                 st.error("Validation Error: Username, Email, and First Name cannot be blank!")
