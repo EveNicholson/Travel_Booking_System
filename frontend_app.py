@@ -160,16 +160,15 @@ else:
             st.metric("Your Account Total Lifetime Spend", f"£{user_isolated_df['TotalBookingCost'].sum():,.2f}")
             
         st.markdown("---")
-        
         st.subheader("✈️ Reserve a New Holiday Package")
         
-        # 🛠️ FIXED: Restructured layout rows to avoid nesting and page cut-offs
-        c_col1, c_col2 = st.columns(2)
-        with c_col1:
+        # 🔓 THE ULTIMATE VERTICAL GRID RESTRUCTURE (Prevents laptop display clipping bugs completely)
+        c_left, c_right = st.columns(2)
+        
+        with c_left:
+            st.markdown("### 🛫 1. Flight & Hotel Accommodation Details")
             c_airline = st.selectbox("Select Flight Carrier Line", ["American Airlines", "United Airlines", "Delta Airlines", "British Airways"])
             c_hotel = st.selectbox("Select Destination Hotel", [h["HotelName"] for h in st.session_state.hotels])
-            c_car = st.selectbox("Select Vehicle Rental Type", [c["CarType"] for c in st.session_state.cars])
-        with c_col2:
             user_in_date = st.date_input("Select Hotel Check-In Date", date.today(), key="user_in")
             user_out_date = st.date_input("Select Hotel Check-Out Date", date.today(), key="user_out")
             stay_days = (user_out_date - user_in_date).days
