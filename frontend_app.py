@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from datetime import datetime
+from datetime import datetime, date
 
 # 🌐 Set Page Layout Configuration
 st.set_page_config(page_title="Admin Travel Management Portal", layout="wide", page_icon="🔒")
@@ -43,7 +43,7 @@ if 'logged_in' not in st.session_state:
 
 if not st.session_state.logged_in:
     st.title("🔒 Secure Portal Login")
-    st.markdown("Please authenticating using your TravelBookingSystem user account credentials.")
+    st.markdown("Please authenticate using your TravelBookingSystem user account credentials.")
     
     login_username = st.text_input("Username")
     login_password = st.text_input("Password", type="password")
@@ -102,27 +102,32 @@ else:
             selected_airline = st.selectbox("Assign Flight Carrier", ["American Airlines", "United Airlines", "Delta Airlines", "British Airways"])
         with form_col2:
             selected_hotel = st.selectbox("Assign Hotel Property", [h["HotelName"] for h in st.session_state.hotels])
-            stay_days = st.number_input("Assign Length of Stay (Nights)", min_value=1, max_value=30, value=5)
+            admin_in_date = st.date_input("Check-In Date", date.today(), key="admin_in")
+            admin_out_date = st.date_input("Check-Out Date", date.today(), key="admin_out")
         with form_col3:
-            st.markdown("<br>", unsafe_allow_html=True) 
+            stay_days = (admin_out_date - admin_in_date).days
+            st.markdown(f"<br><b>Calculated Stay Duration:</b> {stay_days} Nights", unsafe_allow_html=True)
             if st.button("Execute Administrative Booking 🚀", use_container_width=True):
-                hotel_base = next(h for h in st.session_state.hotels if h["HotelName"] == selected_hotel)
-                flight_cost = 300.00 if "American" in selected_airline else 250.00
-                total_cost_calc = flight_cost + (hotel_base["PricePerNight"] * stay_days)
-                
-                # Update Inventory Count
-                for h in st.session_state.hotels:
-                    if h["HotelName"] == selected_hotel:
-                        h["AvailableRooms"] -= 1
-                        
-                # Append Master Row Record
-                st.session_state.bookings.append({
-                    "BookingID": len(st.session_state.bookings) + 1, "Username": target_user,
-                    "Airline": selected_airline, "HotelName": selected_hotel, "StayDuration": stay_days,
-                    "TotalBookingCost": total_cost_calc, "Status": "Confirmed"
-                })
-                st.success(f"Administrative overrides completed. Booking assigned to user '{target_user}'.")
-                st.rerun()
+                if stay_days <= 0:
+                    st.error("Check-Out Date must be after Check-In Date!")
+                else:
+                    hotel_base = next(h for h in st.session_state.hotels if h["HotelName"] == selected_hotel)
+                    flight_cost = 300.00 if "American" in selected_airline else 250.00
+                    total_cost_calc = flight_cost + (hotel_base["PricePerNight"] * stay_days)
+                    
+                    # Update Inventory Count
+                    for h in st.session_state.hotels:
+                        if h["HotelName"] == selected_hotel:
+                            h["AvailableRooms"] -= 1
+                            
+                    # Append Master Row Record
+                    st.session_state.bookings.append({
+                        "BookingID": len(st.session_state.bookings) + 1, "Username": target_user,
+                        "Airline": selected_airline, "HotelName": selected_hotel, "StayDuration": stay_days,
+                        "TotalBookingCost": total_cost_calc, "Status": "Confirmed"
+                    })
+                    st.success(f"Administrative overrides completed. Booking assigned to user '{target_user}'.")
+                    st.rerun()
 
         st.markdown("---")
         
@@ -166,24 +171,16 @@ else:
             c_airline = st.selectbox("Select Flight Carrier Line", ["American Airlines", "United Airlines", "Delta Airlines", "British Airways"])
             c_hotel = st.selectbox("Select Destination Hotel", [h["HotelName"] for h in st.session_state.hotels])
         with c_col2:
-            c_stay = st.number_input("Select Stay Length (Nights)", min_value=1, max_value=21, value=4)
-            st.markdown("<br>", unsafe_allow_html=True)
+            user_in_date = st.date_input("Select Check-In Date", date.today(), key="user_in")
+            user_out_date = st.date_input("Select Check-Out Date", date.today(), key="user_out")
+            c_stay = (user_out_date - user_in_date).days
+            st.markdown(f"<b>Computed Duration:</b> {c_stay} Nights", unsafe_allow_html=True)
+            
             if st.button("Confirm Package Booking 💳", use_container_width=True):
-                hotel_base = next(h for h in st.session_state.hotels if h["HotelName"] == c_hotel)
-                f_cost = 300.00 if "American" in c_airline else 250.00
-                total_c = f_cost + (hotel_base["PricePerNight"] * c_stay)
-                
-                # Execute automated room deduction trigger
-                for h in st.session_state.hotels:
-                    if h["HotelName"] == c_hotel:
-                        h["AvailableRooms"] -= 1
-                        
-                st.session_state.bookings.append({
-                    "BookingID": len(st.session_state.bookings) + 1, "Username": st.session_state.username,
-                    "Airline": c_airline, "HotelName": c_hotel, "StayDuration": c_stay,
-                    "TotalBookingCost": total_c, "Status": "Confirmed"
-                })
-                st.success("Your reservation packet has been successfully created!")
-                st.rerun()
-                
+                if c_stay <= 0:
+                    st.error("Check-Out Date must be after Check-In Date!")
+                else:
+                    hotel_base = next(h for h in st.session_state.hotels if h["HotelName"] == c_hotel)
+                    f_cost = 300.00 if "American" in c_airline else 250.00
+                    total_c = f_cost + (hotel_base["PricePerNight"] * c_stay)
 
